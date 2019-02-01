@@ -1,0 +1,46 @@
+<?php
+/** @var $block \Netzexpert\Otherproducts\Block\Catalog\Product\View\Otherproducts */
+
+$otherProducts = $block->getProductCollection();
+?>
+<?php if ($otherProducts): ?>
+<?php
+    $items = $otherProducts->getItems();
+    $title = __('Similar products');
+    $type = 'similar';
+    $class = $type;
+    $image = 'cart_cross_sell_products';
+    $templateType = null;
+    ?>
+    <div class="block block-similar-wrapper">
+        <div class="block-title title">
+            <strong id="block-<?= /* @escapeNotVerified */ $class ?>-heading" role="heading" aria-level="2"><?= /* @escapeNotVerified */ $title ?></strong>
+        </div>
+        <div class="block-content content" aria-labelledby="block-<?= /* @escapeNotVerified */ $class ?>-heading">
+            <div class="products wrapper grid products-grid products-<?= /* @escapeNotVerified */ $type ?>">
+                <ol class="products list items product-items">
+                    <?php
+                    /** @var Magento\Catalog\Model\Product $_item */
+                    foreach ($items as $_item): ?>
+                        <li class="item product product-item">
+                        <div class="product-item-info">
+                            <?= /* @escapeNotVerified */ '<!-- ' . $image . '-->' ?>
+                            <a href="<?= /* @escapeNotVerified */ $block->getProductUrl($_item) ?>" class="product photo product-item-photo">
+                                <?= $block->getImage($_item, $image)->toHtml() ?>
+                            </a>
+                            <div class="product details product-item-details">
+                                <strong class="product name product-item-name"><a class="product-item-link" title="<?= $block->escapeHtml($_item->getName()) ?>" href="<?= /* @escapeNotVerified */ $block->getProductUrl($_item) ?>">
+                                        <?= $block->escapeHtml($_item->getName()) ?></a>
+                                </strong>
+
+                                <?= /* @escapeNotVerified */ $block->getProductPrice($_item) ?>
+                            </div>
+                        </div>
+                        </li>
+                    <?php endforeach ?>
+                </ol>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
