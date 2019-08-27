@@ -9,14 +9,14 @@
 namespace Netzexpert\Otherproducts\Model\Product;
 
 use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
+use Magento\CatalogInventory\Helper\Stock;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 
 class Otherproducts
 {
-    const XML_PATH_OTHERPRODUCTS = 'otherproducts/general';
-
     /**
      * @var CollectionFactory
      */
@@ -24,6 +24,10 @@ class Otherproducts
 
     /** @var ScopeConfigInterface  */
     private $scopeConfig;
+    /**
+     * @var Stock
+     */
+    private $stockFilter;
 
     /**
      * Otherproducts constructor.
@@ -32,15 +36,17 @@ class Otherproducts
      */
     public function __construct(
         CollectionFactory $collectionFactory,
-        ScopeConfigInterface $scopeConfig
+        ScopeConfigInterface $scopeConfig,
+        Stock $stockFilter
     ) {
         $this->collectionFactory = $collectionFactory;
         $this->scopeConfig = $scopeConfig;
+        $this->stockFilter = $stockFilter;
     }
 
     /**
      * @param $product Product
-     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     * @return Collection
      */
     public function getProductCollection($product)
     {
@@ -59,7 +65,9 @@ class Otherproducts
         $categoryIds = $product->getCategoryIds();
         $productCollection->addAttributeToSelect('*')
             ->addCategoriesFilter(['in' => implode(',', $categoryIds)])
-            ->addFieldToFilter('entity_id', ['neq'=>$product->getId()]);
+            ->addFieldToFilter('entity_id', ['neq'=>$product->getId()])
+            ->addFieldToFilter('status', ['eq'=>'1']);
+        $this->stockFilter->addInStockFilterToCollection($productCollection);
         if ($limit) {
             $productCollection->setPageSize($limit)
             ->setCurPage(1);

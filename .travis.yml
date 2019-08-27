@@ -1,0 +1,25 @@
+language: php
+
+before_install:
+  - echo "memory_limit=2048M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - composer config --global http-basic.repo.magento.com "$MAGENTO_USERNAME" "$MAGENTO_PASSWORD"
+
+install:
+  - mkdir -p Netzexpert/Otherproducts
+  - mv -t Netzexpert/Otherproducts/ !(Netzexpert)
+  - composer create-project "magento/community-edition" magento-ce
+  - composer create-project codacy/coverage cc-reporter
+  - mv Netzexpert/ magento-ce/app/code/
+  - cd magento-ce
+
+script:
+  - php vendor/bin/phpcs --standard=PSR2 app/code/Netzexpert/Otherproducts/
+  - php vendor/bin/phpmd app/code/Netzexpert/Otherproducts/ text cleancode,codesize,controversial,design,naming,unusedcode
+  - php vendor/bin/phpcpd app/code/Netzexpert/Otherproducts/
+  - mkdir -p build/logs/
+  - php vendor/bin/phpunit -c app/code/Netzexpert/Otherproducts/Test/Unit/phpunit.xml app/code/Netzexpert/Otherproducts/ --coverage-clover build/logs/clover.xml
+
+
+after_script:
+  - cd ../
+  - cc-reporter/bin/codacycoverage clover magento-ce/build/logs/clover.xml --git-commit=$TRAVIS_COMMIT
