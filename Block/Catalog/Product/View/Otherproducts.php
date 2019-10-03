@@ -49,7 +49,8 @@ class Otherproducts extends Template
      */
     public function getProductCollection()
     {
-        return $this->model->getProductCollection($this->getProduct());
+        $catIds = ($this->getData('catIds')) ? $this->getData('catIds') : $this->getProduct()->getCategoryIds();
+        return $this->model->getProductCollection($this->getProduct()->getId(), $catIds);
     }
 
     /**

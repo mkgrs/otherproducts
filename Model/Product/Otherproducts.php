@@ -45,10 +45,11 @@ class Otherproducts
     }
 
     /**
-     * @param $product Product
+     * @param $productId int
+     * @param $categoryIds array
      * @return Collection
      */
-    public function getProductCollection($product)
+    public function getProductCollection($productId, $categoryIds)
     {
         $enabled = $this->scopeConfig->getValue(
             'otherproducts/general/enable',
@@ -62,10 +63,9 @@ class Otherproducts
             return null;
         }
         $productCollection = $this->collectionFactory->create();
-        $categoryIds = $product->getCategoryIds();
         $productCollection->addAttributeToSelect('*')
             ->addCategoriesFilter(['in' => implode(',', $categoryIds)])
-            ->addFieldToFilter('entity_id', ['neq'=>$product->getId()])
+            ->addFieldToFilter('entity_id', ['neq'=>$productId])
             ->addFieldToFilter('status', ['eq'=>'1']);
         $this->stockFilter->addInStockFilterToCollection($productCollection);
         if ($limit) {
