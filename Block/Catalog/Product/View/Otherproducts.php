@@ -4,7 +4,10 @@ namespace Netzexpert\Otherproducts\Block\Catalog\Product\View;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Block\Product\ImageFactory;
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Pricing\Price\FinalPrice;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Pricing\Render;
 use Magento\Framework\Registry;
 use Magento\Framework\View\Element\Template;
 
@@ -79,5 +82,101 @@ class Otherproducts extends Template
     public function getImage($product, $imageId, $attributes = [])
     {
         return $this->imageFactory->create($product, $imageId, $attributes);
+    }
+
+    /**
+     * Get product price.
+     *
+     * @param Product $product
+     * @return string
+     */
+    public function getProductPrice(Product $product)
+    {
+        $priceRender = $this->getPriceRender();
+
+        $price = '';
+        if ($priceRender) {
+            $price = $priceRender->render(
+                FinalPrice::PRICE_CODE,
+                $product,
+                [
+                    'include_container' => true,
+                    'display_minimal_price' => true,
+                    'zone' => Render::ZONE_ITEM_LIST,
+                    'list_category_page' => true
+                ]
+            );
+        }
+
+        return $price;
+    }
+
+    /**
+     * Specifies that price rendering should be done for the list of products.
+     * (rendering happens in the scope of product list, but not single product)
+     *
+     * @return Render
+     */
+    protected function getPriceRender()
+    {
+        return $this->getLayout()->getBlock('product.price.render.default')
+            ->setData('is_product_list', true);
+    }
+
+    /**
+     * Retrieve current view mode
+     *
+     * @return string
+     */
+    public function getMode()
+    {
+        if ($this->getChildBlock('toolbar')) {
+            return $this->getChildBlock('toolbar')->getCurrentMode();
+        }
+
+        return $this->getDefaultListingMode();
+    }
+
+    /**
+     * Get listing mode for products if toolbar is removed from layout.
+     * Use the general configuration for product list mode from config path catalog/frontend/list_mode as default value
+     * or mode data from block declaration from layout.
+     *
+     * @return string
+     */
+    private function getDefaultListingMode()
+    {
+        // default Toolbar when the toolbar layout is not used
+        $defaultToolbar = $this->getToolbarBlock();
+        $availableModes = $defaultToolbar->getModes();
+
+        // layout config mode
+        $mode = $this->getData('mode');
+
+        if (!$mode || !isset($availableModes[$mode])) {
+            // default config mode
+            $mode = $defaultToolbar->getCurrentMode();
+        }
+
+        return $mode;
+    }
+
+    /**
+     * Retrieve child block by name
+     *
+     * @param string $alias
+     * @return \Magento\Framework\View\Element\AbstractBlock|bool
+     */
+    public function getChildBlock($alias)
+    {
+        $layout = $this->getLayout();
+        if (!$layout) {
+            return false;
+        }
+        $name = $layout->getChildName($this->getNameInLayout(), $alias);
+        if ($name) {
+            return $layout->getBlock($name);
+        }
+        return false;
     }
 }
